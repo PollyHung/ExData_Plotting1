@@ -1,0 +1,164 @@
+#library packages...
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+
+#create a folder in computer to store the data 
+if(!file.exists("data")){ 
+  dir.create("data")
+}
+
+#downlaod the data
+fileurl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
+download.file(fileurl, destfile = "./data/machine_learning_repository.zip", method = "curl")
+
+#unzip the data 
+dir.create("./data/machine_learning_repository") #we create an empty folder for the files 
+out_dir <- "./data/machine_learning_repository" #the directory we want to extract our files to 
+unzip("./data/machine_learning_repository.zip", exdir = out_dir) #unzipping and extracting......
+
+#read it into our environment 
+ml_repo <- read.table("./data/machine_learning_repository/household_power_consumption.txt", 
+                      sep = ";",
+                      skip = 1)
+ml_repo$V1 <- dmy(ml_repo$V1) #change the date format 
+colnames(ml_repo) <- c("date", "time", "global_active_power", "global_reactive_power",
+                       "voltage", "global_intensity", "sub_metering_1", "sub_metering_2",
+                       "sub_metering_3")
+
+#subset only the data we desire 
+ml_repo_1 <- filter(ml_repo, ml_repo$date == "2007-02-01")
+ml_repo_2 <- filter(ml_repo, ml_repo$date == "2007-02-02")
+rm(ml_repo)
+ml_repo <- rbind(ml_repo_1, ml_repo_2)
+rm(ml_repo_1)
+rm(ml_repo_2)
+
+#are there any missing values? <- NO
+sum(is.na(ml_repo)) 
+
+#Our overall goal here is simply to examine how household energy usage varies over 
+#a 2-day period in February, 2007. Your task is to reconstruct the following plots below, 
+#all of which were constructed using the base plotting system.
+
+
+
+
+#plot 1: 
+#a histogram on the frequency of global active power (kilowatts) with 12 bars?
+#x-axis = global active power 
+#y-axis = frequency 
+#title = global active power 
+plot1 <- hist(as.numeric(ml_repo$global_active_power),
+              col = "#c20927",  #yes I've chosen a darker red :) because I like it
+              xlab = "Global Active Power (kilowatts)",
+              main = " ")
+title(main = "Global Active Power")
+
+
+
+
+
+#plot 2: 
+#some sort of line graph? of global active power over thursday, friday and saturday. 
+ml_repo$id <- seq.int(nrow(ml_repo))
+summary(ml_repo$id) #provides the min/median/max for axis 
+plot2 <- plot(ml_repo$id, ml_repo$global_active_power,
+              type = "l",
+              pch = ".",
+              xlab = " ",
+              ylab = "Global Active Power (kilowatts)",
+              xaxt = "n"); axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"))
+
+
+
+
+
+#plot 3
+#plot sub_metering_1, 2, and 3 onto same graph in colour black, red and blue 
+#line graph, x-tick = Thu, Fri, Sat
+#y-lab = Energy sub metering 
+summary(as.numeric(ml_repo$sub_metering_2))
+
+plot3 <- ggplot(ml_repo, 
+                aes(x = id)) +
+  geom_line(aes(y = as.numeric(sub_metering_1), colour = "sub_metering_1"))+
+  geom_line(aes(y = as.numeric(sub_metering_2), colour = "sub_metering_2")) +
+  geom_line(aes(y = as.numeric(sub_metering_3), colour = "sub_metering_3")) + 
+  scale_x_continuous(limits = c(1, 2880.0), 
+                   breaks = c(1, 1440.5, 2880.0),
+                   labels = c("Thu", "Fri", "Sat")) +
+  labs(x = " ",
+       y = "Energy sub metering")+
+  theme_bw() +
+  scale_color_manual(name = "Group", 
+                     values = c("sub_metering_1" = "black", 
+                                "sub_metering_2" = "red",
+                                "sub_metering_3" = "blue"), 
+                     labels = c("sub_metering_1", "sub_metering_2", "sub_metering_3")) 
+plot3 
+#alternatively...
+energy_sub_metering <- plot(ml_repo$id, ml_repo$sub_metering_1,
+                            type = "l",
+                            pch = ".",
+                            col = "black",
+                            xlab = " ",
+                            ylab = "Energy sub metering",
+                            xaxt = "n"); 
+axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"));
+lines(ml_repo$id, ml_repo$sub_metering_2, 
+      type = "l", 
+      col = "red");
+lines(ml_repo$id, ml_repo$sub_metering_3, 
+      type = "l", 
+      col = "blue");
+legend(2050, 39.5, legend = c("sub_metering_1", "sub_metering_2", "sub_metering_3"),
+       col = c("black", "red", "blue"), lty = 1:2)
+  
+  
+  
+  
+
+#first graph 
+#ml_repo$id <- seq.int(nrow(ml_repo))
+#summary(ml_repo$id) #provides the min/median/max for axis 
+global_active_power <- plot(ml_repo$id, ml_repo$global_active_power,
+              type = "l",
+              pch = ".",
+              xlab = " ",
+              ylab = "Global Active Power (kilowatts)",
+              xaxt = "n"); axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"))
+#second graph 
+voltage <- plot(ml_repo$id, ml_repo$voltage,
+                type = "l",
+                pch = ".",
+                xlab = "datetime",
+                ylab = "Voltage",
+                xaxt = "n"); axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"))
+#third graph 
+energy_sub_metering <- plot(ml_repo$id, ml_repo$sub_metering_1,
+                            type = "l",
+                            pch = ".",
+                            col = "black",
+                            xlab = " ",
+                            ylab = "Energy sub metering",
+                            xaxt = "n"); 
+axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"));
+lines(ml_repo$id, ml_repo$sub_metering_2, 
+      type = "l", 
+      col = "red");
+lines(ml_repo$id, ml_repo$sub_metering_3, 
+      type = "l", 
+      col = "blue");
+legend(1650, 39.5, legend = c("sub_metering_1", "sub_metering_2", "sub_metering_3"),
+       col = c("black", "red", "blue"), lty = 1:2, cex = 0.8, bty="n")
+
+#fourth graph 
+Global_reactive_power <- plot(ml_repo$id, ml_repo$global_reactive_power,
+                type = "l",
+                pch = ".",
+                xlab = "datetime",
+                ylab = "Global_reactive_power",
+                xaxt = "n"); axis(1, at = c(1, 1440.5, 2880.0), labels = c("Thu", "Fri", "Sat"))
+
+  
