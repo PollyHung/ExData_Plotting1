@@ -118,7 +118,7 @@ legend(2050, 39.5, legend = c("sub_metering_1", "sub_metering_2", "sub_metering_
   
   
   
-
+#Plot4
 #first graph 
 #ml_repo$id <- seq.int(nrow(ml_repo))
 #summary(ml_repo$id) #provides the min/median/max for axis 
